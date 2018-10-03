@@ -1,4 +1,6 @@
 *.ppm
 .DS_Store
 ._*
-output/
+.*
+_*
+legacy/
