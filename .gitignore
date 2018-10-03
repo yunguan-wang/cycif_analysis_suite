@@ -1,0 +1,4 @@
+*.ppm
+.DS_Store
+._*
+output/
