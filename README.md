@@ -55,3 +55,16 @@ Perform T-test and kolmogorov-smirnov test for each pair comparing test with con
 ```
 pwa.contrast_based_differential_analysis()
 ```
+Out put table with log fold change of each channel comparing test vs control.
+
+Channel | logFC |	T_pValue | KS_pValue | adj_T_pVal | adj_KS_pVal	| ligand	| dose	| time	| Batch	Control_metadata
+-------------| ---- | ---- | ---- | ---- | ---- | ---- |----|----|--------
+Cytoplasm_Catenin (Beta)|-0.13|0.65|0.97|0.85|0.97|BMP2|20|1|ctrl_0_0
+Cytoplasm_Cyclin D1|-0.36|0.37|0.11|0.67|0.23|BMP2|20|1|ctrl_0_0
+
+Make a dotted heatmap summerizing logFC of all channels over all conditions.
+```
+pwa.make_fc_heamtap_matrix(['ligand', 'time', 'Batch'], output_fname=output_prefix)
+pwa.make_dotted_heatmap()
+```
+![alt text](https://github.com/yunguan-wang/cycif_analysis_suite/blob/MCF10A/example_output/T0_ctrl%20as%20controllogFC%20dotted%20heatmap.png)
