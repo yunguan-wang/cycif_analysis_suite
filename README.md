@@ -28,14 +28,15 @@ _,_,t_c = ROC_lostcells(raw_qc_expr_data, cutoff_min=0, cutoff_max=15,
 ```
 The threshold is determined to be the elbow point of the curve, as shown as the intersection of red dashed line and the curve.
 
-![alt_text](https://github.com/yunguan-wang/cycif_analysis_suite/blob/MCF10A/example_output/Cycle%20difference%20thresholding.png)
+<img src="https://github.com/yunguan-wang/cycif_analysis_suite/blob/MCF10A/example_output/Cycle difference thresholding.png" width="400">
 
 Then, lost cells with the derived threshold can be extracted and visualized
 ```
 df_lc_cv, _ = get_lost_cells(raw_qc_expr_data, t_c,8,'cycle_diff')
 plot_lost_cell_stacked_area(df_lc_cv, figname='example_output/accumulated cell loss by cycle.png')
 ```
-![alt_text](https://github.com/yunguan-wang/cycif_analysis_suite/blob/MCF10A/example_output/accumulated%20cell%20loss%20by%20cycle.png)
+
+<img src="https://github.com/yunguan-wang/cycif_analysis_suite/blob/MCF10A/example_output/accumulated cell loss by cycle.png" width="400">
 
 ### Contrast based differential analysis
 This module is design for analysis comparing test conditions vs a reference condition (control), and thus is best suited for plate-based cycif data.
