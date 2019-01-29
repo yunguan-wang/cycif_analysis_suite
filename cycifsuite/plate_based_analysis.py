@@ -557,7 +557,7 @@ class per_well_analysis():
         df_fc['Ch'] = ['_'.join(x.split('_')[:2]) for x in df_fc.index]
         df_fc.sort_values(x_group, inplace=True)
         g = sns.FacetGrid(data=df_fc, col='Ch', hue=color_by,
-                          col_wrap=5, height=5, aspect=2)
+                          col_wrap=3, height=5, aspect=2)
         g = g.map(sns.swarmplot, x_group, 'logFC', s=10)
         g.add_legend(markerscale=2)
         plt.savefig(output_fname)
