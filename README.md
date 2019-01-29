@@ -16,7 +16,26 @@ After a few minutes, you should see the result tables and figures in the `exampl
 Modules in this suite can be divided into several modules including QC, contrast-based differential analysis and unsurpervised analyses. 
 
 ### QC (elliminate bad/lost cells)
-TODO
+During a washing cycle in cycif, cells can be pushed away or even washed off. If a segmention masked is placed on such cells, close to background signals will be recorded for channels of the subsequent cycles, although these cells should in fact be treated as missing data. Since this procedure is repeated several times in a experiment, the cell loss due to this cannot be ignored. Thus the first procedure of data analysis should be getting rid of these cells. 
+Currently, a simple thresholding based method is used to detect moved/washed-away cells. Thresholds can be applied on intensity difference between adjacent cycles of the DAPI channel or on background intensity of DAPI channel. The exact threshold value is determined from data.
+Determining threshold with cycle difference.
+```
+from cycifsuite.detect_lost_cells import ROC_lostcells, get_lost_cells, plot_lost_cell_stacked_area
+import pandas as pd
+raw_qc_expr_data = pd.read_csv('example_input/sample_raw_data_for_QC.csv', index_col=0)
+_,_,t_c = ROC_lostcells(raw_qc_expr_data, cutoff_min=0, cutoff_max=15,
+                        steps=50, filtering_method='cycle_diff', figname='example_output/Cycle difference thresholding.png')
+```
+The threshold is determined to be the elbow point of the curve, as shown as the intersection of red dashed line and the curve.
+
+![alt_text]()
+
+Then, lost cells with the derived threshold can be extracted and visualized
+```
+df_lc_cv, _ = get_lost_cells(raw_qc_expr_data, t_c,8,'cycle_diff')
+plot_lost_cell_stacked_area(df_lc_cv, figname='example_output/accumulated cell loss by cycle.png')
+```
+![alt_text]()
 
 ### Contrast based differential analysis
 This module is design for analysis comparing test conditions vs a reference condition (control), and thus is best suited for plate-based cycif data.
