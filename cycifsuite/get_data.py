@@ -7,10 +7,7 @@ Read a table from synapse, common formats such as txt, csv or excel
 import synapseclient
 import os
 import pandas as pd
-from dropbox import Dropbox
-import pandas as pd
 from io import StringIO
-
 
 def read_file(fn):
     """Read local files, either csv, txt or excel.
