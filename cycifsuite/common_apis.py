@@ -92,30 +92,6 @@ def differential_analysis(test_samples, control_samples):
     report['adj_KS_pVal'] = fdr(report.KS_pValue)[1]
     return report
 
-
-def cluster_based_DE(test_norm, control_norm, figname):
-    data_umap = umap.fit_transform(test_norm)
-    labels = clustering_function.fit_predict(data_umap)
-    labels = pd.Series(['Cluster ' + str(x)
-                        for x in labels], index=test_norm.index)
-    overall_report = pd.DataFrame()
-    for cluster in labels.unique():
-        if cluster == 'Cluster -1':
-            continue
-        current_cluster_cells = labels[labels == cluster].index
-        if len(current_cluster_cells) <= 0.05 * len(test_norm):
-            continue
-        print('\tPerforming differential analsis on {} which has {} cells'.format(
-            cluster, str(len(current_cluster_cells))))
-        test_current_cluster = test_norm.loc[current_cluster_cells]
-        report_current_cluster = differential_analysis(
-            test_current_cluster, control_norm)
-        report_current_cluster['Cluster'] = cluster
-        overall_report = overall_report.append(report_current_cluster)
-    plot_clustering(data_umap, labels, figname)
-    return overall_report, labels
-
-
 def plot_expr_on_2D(df_2d, df_raw_expr, figname, labels):
     """
     Make a grid of scatter plots of original data projected to a 2D space determined by UMAP.

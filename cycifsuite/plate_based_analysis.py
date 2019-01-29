@@ -5,8 +5,7 @@ import random
 import seaborn as sns
 from sklearn.metrics.pairwise import euclidean_distances
 from matplotlib import pyplot as plt
-from common_apis import *
-
+from common_apis import differential_analysis, channel_histograms, check_numeric, two_way_hc_ordering, make_complex_heatmap
 
 def dot_heatmap(plotdata, x=1, y=0, figsize=(32, 12), size_scale=30, fontsize=18, half_ticks=False, figname=None):
     """Make dotted heatmap based on given long-format data.
@@ -143,7 +142,6 @@ def channel_dstrn_plot(reformed_expr_data, line_style, hue_sep='time', col_sep='
                           hue=hue_sep, palette="Set2", sharey=False, sharex=True, height=5)
         g = (g.map(sns.distplot, "Log2 Cycif intensity", hist=False, rug=False))
         g.add_legend(markerscale=2, title=channel)
-        lines = []
         for sub_plot in g.axes.flatten():
             key1 = check_numeric(sub_plot.get_title().split(' = ')[1])
             if key1 == control_name:
@@ -390,7 +388,7 @@ class per_well_analysis():
         """
         save_fig_filename = os.path.join(self.output_path, ' '.join(
             ['Drug_control distance over', x_group, 'per', facetgrid_col]) + '.png')
-        sns.set(font_scale=1.5)
+        sns.set(font_scale=3)
         order = sorted(self.metadata[x_group].unique())
         g = sns.FacetGrid(data=self.df_dist, hue='ligand', col=facetgrid_col,
                           row=facetgrid_row, sharey=True, sharex=True, height=6)
@@ -587,7 +585,7 @@ class per_well_analysis():
         if not os.path.exists(self.output_path + '/misc'):
             os.mkdir(self.output_path + '/misc')
         # Use independant plotting functinos instead of those in the class.
-        grouped_fc_table, reformed_expr_data, line_style = channel_dstrn_plot_data_prep(
+        _, reformed_expr_data, line_style = channel_dstrn_plot_data_prep(
             self.report, self.expr_data, self.metadata, fc_threshold=fc_threshold, organize_by=organize_by)
         _ = channel_dstrn_plot(reformed_expr_data, hue_sep=organize_by[1], col_sep=organize_by[0],
                                control_name=self.control_name, output_prefix=self.output_prefix, line_style=line_style)

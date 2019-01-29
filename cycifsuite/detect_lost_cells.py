@@ -156,13 +156,10 @@ def ROC_lostcells(expr_DAPIs, cutoff_min=1, cutoff_max=3,
     lost_cells: list
         list of lost cell indices.
     """
-    all_cells = expr_DAPIs.index
     x = np.linspace(cutoff_min, cutoff_max, steps)
     y = []
 
     if filtering_method == 'bgnd':
-        bgnd = expr_DAPIs.iloc[:, 0]
-
         if cutoff_max <= 100:
             x_title = 'Fold of background FI as cutoff'
         else:
@@ -171,7 +168,7 @@ def ROC_lostcells(expr_DAPIs, cutoff_min=1, cutoff_max=3,
         for j in x:
             lost_cells = get_lost_cells(
                 expr_DAPIs, j, n_cycles, filtering_method, segmentation_cycle)
-            _, fraction_lost_cells, sd_fraction_lost_cells = get_mean_lost_cell_fraction(
+            _, fraction_lost_cells, _ = get_mean_lost_cell_fraction(
                 expr_DAPIs, lost_cells, fld_stat_method, )
             y.append(fraction_lost_cells)
 
