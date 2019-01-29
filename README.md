@@ -68,3 +68,9 @@ pwa.make_fc_heamtap_matrix(['ligand', 'time', 'Batch'], output_fname=output_pref
 pwa.make_dotted_heatmap()
 ```
 ![alt text](https://github.com/yunguan-wang/cycif_analysis_suite/blob/MCF10A/example_output/T0_ctrl%20as%20controllogFC%20dotted%20heatmap.png)
+
+To evaluate the distribution of fold change across each replicate, a swarm plot can be used.
+```
+pwa.make_swarm_plot()
+```
+![alt text](https://github.com/yunguan-wang/cycif_analysis_suite/blob/MCF10A/example_output/T0_ctrl%20as%20control%20swarm%20logFC%20plot%20by%20time%20.png)
