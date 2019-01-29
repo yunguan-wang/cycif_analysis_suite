@@ -50,24 +50,31 @@ def get_lost_cells(expr_DAPIs, threshold, n_cycles,
     elif filtering_method == 'cycle_diff':
         for i in range(n_cycles, 1, -1):
             current_cycle_fi = expr_DAPIs.iloc[:, i]
-            next_cycle_fi = expr_DAPIs.iloc[:, i - 1]
-            cycle_diff = abs(next_cycle_fi - current_cycle_fi)
+            previous_cycle_fi = expr_DAPIs.iloc[:, i - 1]
+            cycle_diff = abs(previous_cycle_fi - current_cycle_fi)
             current_lost_cells = all_cells[
                 (current_cycle_fi < threshold * cycle_diff)]
             lost_cells[current_lost_cells] = 'Cycle_' + str(i)
-    return lost_cells.dropna()
+    lost_cells = lost_cells.dropna()
+    return lost_cells, lost_cells.index.tolist() 
 
 
-def plot_lost_cell_stacked_area(lost_cells, n_fields=9, n_cycles=8):
+def plot_lost_cell_stacked_area(lost_cells, n_fields=9, n_cycles=8, figname=None):
     lost_cells = pd.DataFrame(lost_cells, columns=['cycle'])
     lost_cells['field'] = [x.split('_')[-2] for x in lost_cells.index]
     lost_cells['count'] = 1
     lc_stats = lost_cells.groupby(['cycle', 'field']).sum()
     cycles = lc_stats.index.levels[0]
     flds = lc_stats.index.levels[1]
+    # for occasions where a field is missing from a cycle.
+    idx = pd.MultiIndex.from_product((cycles, flds))
+    lc_stats = lc_stats.reindex(idx,fill_value=0)
     plt.stackplot(flds, *lc_stats.values.reshape(n_cycles -
                                                  1, n_fields), labels=cycles)
     plt.legend(loc=2)
+    if figname is not None:
+        plt.savefig(figname)
+        plt.close()
 
 
 def get_fld_cell_counts(expr_DAPIs):
@@ -123,7 +130,8 @@ def ROC_lostcells(expr_DAPIs, cutoff_min=1, cutoff_max=3,
                   steps=20, n_cycles=8, elbow_threshold=0.1,
                   filtering_method='bgnd',
                   fld_stat_method='individual',
-                  segmentation_cycle=4):
+                  segmentation_cycle=4,
+                  figname=None):
     """ Plot curve of filtering threshold (x) and mean fraction of lost cells per field (y). 
     Optimal threshold are determined as the 'elbow point' of the curve. Filtering method can be 
     based on cycle variation or background. 
@@ -166,18 +174,18 @@ def ROC_lostcells(expr_DAPIs, cutoff_min=1, cutoff_max=3,
             x_title = 'Additional absolute background FI as cutoff'
 
         for j in x:
-            lost_cells = get_lost_cells(
+            _, lost_cells = get_lost_cells(
                 expr_DAPIs, j, n_cycles, filtering_method, segmentation_cycle)
             _, fraction_lost_cells, _ = get_mean_lost_cell_fraction(
                 expr_DAPIs, lost_cells, fld_stat_method, )
             y.append(fraction_lost_cells)
 
     elif filtering_method == 'cycle_diff':
-        x_title = 'Fold of between cycle FI variation as cutoff'
+        x_title = 'Fold of FI difference in adjacent cycles as cutoff'
         for j in x:
-            lost_cells = get_lost_cells(
+            _, lost_cells = get_lost_cells(
                 expr_DAPIs, j, n_cycles, filtering_method, segmentation_cycle)
-            _, fraction_lost_cells, sd_fraction_lost_cells = get_mean_lost_cell_fraction(
+            _, fraction_lost_cells, _ = get_mean_lost_cell_fraction(
                 expr_DAPIs, lost_cells, fld_stat_method)
             y.append(fraction_lost_cells)
 
@@ -203,4 +211,7 @@ def ROC_lostcells(expr_DAPIs, cutoff_min=1, cutoff_max=3,
              'x = {:.2f}, y = {:.2f}'.format(x[elbow_idx], y[elbow_idx]))
     plt.xlabel(x_title)
     plt.ylabel('Fraction of valid cells')
+    if figname is not None:
+        plt.savefig(figname)
+        plt.close()
     return x, y, x[elbow_idx]
