@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-from plate_based_analysis import per_well_analysis
+from cycifsuite.plate_based_analysis import per_well_analysis
 
 expr_data = pd.read_csv(
     'example_input/sample_exprdata.csv', index_col=0)
