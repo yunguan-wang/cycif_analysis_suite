@@ -3,6 +3,7 @@ A collection of tools for analysis of segmented single-cell cycif data. Function
 ## Installation
 ```
 git clone https://github.com/yunguan-wang/cycif_analysis_suite.git
+cd cycif_analysis_suite
 pip install -e .
 ```
 ## Example
