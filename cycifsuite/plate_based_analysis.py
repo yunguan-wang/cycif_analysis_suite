@@ -5,14 +5,14 @@ import random
 import seaborn as sns
 from sklearn.metrics.pairwise import euclidean_distances
 from matplotlib import pyplot as plt
-from common_apis import differential_analysis, channel_histograms, check_numeric, two_way_hc_ordering, make_complex_heatmap
+from cycifsuite.common_apis import differential_analysis, channel_histograms, check_numeric, two_way_hc_ordering, make_complex_heatmap
 
 def dot_heatmap(plotdata, x=1, y=0, figsize=(32, 12), size_scale=30, fontsize=18, half_ticks=False, figname=None):
     """Make dotted heatmap based on given long-format data.
 
     Parameters:
     --------
-    plotdata: pd.DataFrame
+    plotdata : pd.DataFrame
         a table of plot data. First two columns corresponds to the y and x axies, and the third is fold change.
     x: int
         column index of x axis of the plot.
