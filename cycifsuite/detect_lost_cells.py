@@ -40,10 +40,7 @@ def get_lost_cells(expr_DAPIs, threshold, n_cycles,
 
     if filtering_method == 'bgnd':
         bgnd = expr_DAPIs.iloc[:, 0]
-        if threshold < 100:
-            threshold = threshold * bgnd
-        else:
-            threshold = threshold + bgnd
+        threshold = threshold * bgnd
         current_cycle_fi = expr_DAPIs.iloc[:, segmentation_cycle]
         current_lost_cells = all_cells[(current_cycle_fi <= threshold)]
         lost_cells[current_lost_cells] = 'lost_due_to_high_bgnd'
