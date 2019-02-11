@@ -568,7 +568,7 @@ class per_well_analysis():
             col_meta = col_meta.loc[cols_order]
             mch(df_data)
 
-    def make_swarm_plot(self, color_by=None, x_group=None):
+    def make_swarm_plot(self, color_by=None, x_group=None, **kwargs):
         """Plate-wise swarm plot of logFC per channel/feature, with flexibility in coloring and grouping along x-axis.
         """
         sns.set(font_scale=2)
@@ -581,10 +581,10 @@ class per_well_analysis():
         df_fc = self.report.copy()
         # Assumes the first two '_' separated elements of index are location
         # and channel name
-        df_fc['Ch'] = ['_'.join(x.split('_')[:2]) for x in df_fc.index]
-        df_fc.sort_values(x_group, inplace=True)
+        df_fc['Ch'] = ['_'.join(x.split('_')[:2][::-1]) for x in df_fc.index]
+        df_fc.sort_values([x_group, color_by, 'Ch'], inplace=True)
         g = sns.FacetGrid(data=df_fc, col='Ch', hue=color_by,
-                          col_wrap=3, height=5, aspect=2)
+                          col_wrap=3, height=5, aspect=2, **kwargs)
         g = g.map(sns.swarmplot, x_group, 'logFC', s=10)
         g.add_legend(markerscale=2)
         plt.savefig(output_fname)

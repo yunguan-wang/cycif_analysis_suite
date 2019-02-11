@@ -66,7 +66,7 @@ def get_lost_cells(expr_DAPIs, threshold, n_cycles,
     return lost_cells, lost_cells.index.tolist()
 
 
-def plot_lost_cell_per_cycle_stacked_area(lost_cells, n_fields=9, n_cycles=8, figname=None):
+def plot_lost_cell_per_cycle_stacked_area(lost_cells, n_fields=9, n_cycles=8, figname=None, return_lc_stats=False):
     lost_cells = pd.DataFrame(lost_cells, columns=['cycle'])
     lost_cells['field'] = [x.split('_')[-2] for x in lost_cells.index]
     lost_cells['count'] = 1
@@ -84,6 +84,8 @@ def plot_lost_cell_per_cycle_stacked_area(lost_cells, n_fields=9, n_cycles=8, fi
     if figname is not None:
         plt.savefig(figname)
         plt.close()
+    if return_lc_stats:
+        return lc_stats
 
 
 def get_fld_cell_counts(expr_DAPIs):
@@ -245,3 +247,86 @@ def ROC_lostcells(expr_DAPIs, cutoff_min=1, cutoff_max=3,
         plt.savefig(figname)
         plt.close()
     return x, y, x[elbow_idx]
+
+
+def find_bad_regions(lc_fraction, bad_field_cutoff=0.9, automatic=False):
+    """Find regions such as fields, well or rows on a plate where it fails 
+    significantly more often than others. Cut off are hard coded as mean + 4SD.
+    This is designed to be used in plate based per field experiments.
+
+    Parameters
+    --------
+    lc_fraction : pandas.DataFrame
+        a table of per field lost cell ratio, which is the first columns.
+        Additional columns are the regions to be tested, could be a well,
+        a row or even a row on a plate.
+    bad_field_cutoff : float
+        a cutoff threshold meaning the max acceptable ratio of lost cells in a field. 
+        If a field has more cells lost than the cutoff, the whold field it will be
+        considered as a bad field.
+    automatic : bool
+        if True, no prompt will be printed out asking for human decision. 
+        Not recommended for unfamiliar data. Default is False.
+
+    Returns
+    --------
+    bad_idx : list
+        a list of indices of the input lc_fraction table considered as bad fields.
+    """
+    t = lc_fraction.iloc[:, 0]
+    bad_idx = t[t >= bad_field_cutoff].index.tolist()
+    additional_bad_idx = []
+    for col in lc_fraction.columns[1:]:
+        # get bad condition ratio for the metadata defined by the colname.
+        col_crit = lc_fraction.groupby(col).agg(
+            lambda x: (x > bad_field_cutoff).sum() / x.shape[0])
+        col_crit = pd.DataFrame(col_crit)
+        # evaluate each condition based on other's mean and std.
+        col_crit['others_mean'] = col_crit.apply(
+            lambda x: col_crit.drop(x.name).iloc[:, 0].mean(), axis=1)
+        col_crit['others_std'] = col_crit.apply(
+            lambda x: col_crit.drop(x.name).iloc[:, 0].std(), axis=1)
+        col_crit['crit'] = col_crit.iloc[:, 0] > (
+            col_crit.others_mean + 4 * col_crit.others_std)
+        for bad_cond in col_crit.index[col_crit.crit]:
+            bad_cond_value = col_crit.loc[bad_cond][0]
+            print('{} with a bad ratio at {:.2f} is considered a bad {}'.format(
+                bad_cond, bad_cond_value, col))
+            if automatic:
+                to_drop = 'y'
+            else:
+                to_drop = input('Drop {}? (y/n)'.format(bad_cond))
+            if to_drop == 'y':
+                additional_bad_idx += lc_fraction[
+                    lc_fraction[col] == bad_cond].index.tolist()
+    bad_idx = list(set(bad_idx + additional_bad_idx))
+    return bad_idx
+
+
+def update_metadata(metadata, lost_cells, bad_pwfs=None):
+    """Update metadata table with a new column indicating if a cell is considered as lost.
+    Considers both direct lost cell list and an additional bad regions defined by 'find_bad_regions'.
+
+    Parameters
+    --------
+    metadata : pandas.DataFrame
+        table of metadata
+    lost_cells : list
+        list of indices of lost cells, must match those in metadata.
+    bad_pwfs : None or list
+        list of additional bad regions in the experiment. 
+
+    Returns
+    --------
+    updated_metadata : pandas.DataFrame
+        updated metadata with a new column 'labeled_as_lost' indicating if a cell is lost.
+    """
+    updated_metadata = metadata.copy()
+    updated_metadata['pwf'] = [
+        '_'.join(x.split('_')[:-1]) for x in updated_metadata.index]
+    updated_metadata['labeled_as_lost'] = 'No'
+    updated_metadata.loc[lost_cells, 'labeled_as_lost'] = 'Yes'
+    if bad_pwfs is not None:
+        updated_metadata.loc[updated_metadata.pwf.isin(
+            bad_pwfs), 'labeled_as_lost'] = 'Yes'
+    return updated_metadata
