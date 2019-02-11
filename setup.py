@@ -1,4 +1,4 @@
-from setuptools import setup,find_packages
+from setuptools import setup, find_packages
 import versioneer
 
 requires = [
@@ -12,11 +12,14 @@ requires = [
     'fuzzywuzzy',
     'synapseclient',
 ]
-VERSION = versioneer.get_version()
-DESCRIPTION = ('A comprehensive collection of tools for analysing segmented Cycif data.')
+version = versioneer.get_version()
+cmdclass = versioneer.get_cmdclass()
+DESCRIPTION = (
+    'A comprehensive collection of tools for analysing segmented Cycif data.')
 
 setup(name='cycifsuite',
-      version=VERSION,
+      version=version,
+      cmdclass=cmdclass,
       description=DESCRIPTION,
       url='https://github.com/yunguan-wang/cycif_analysis_suite',
       author='Yunguan Wang',
