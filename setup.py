@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import versioneer
 
 requires = [
-    'numpy>=1.15.1',
+    'numpy',
     'scipy>=1.0.1',
     'pandas>=0.23.0',
     'scikit-learn>=0.20.1',
