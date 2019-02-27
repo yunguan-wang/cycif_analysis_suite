@@ -11,6 +11,7 @@ requires = [
     'statsmodels',
     'fuzzywuzzy',
     'synapseclient',
+    'rfpimp',
 ]
 version = versioneer.get_version()
 cmdclass = versioneer.get_cmdclass()
