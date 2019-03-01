@@ -16,15 +16,15 @@ def pie_chart_from_well(well_fld_mean, ax=None, well_id=None, plot_legend=False,
 
     Paramerters
     --------
-    ax: None or matplotlib.Axes
+    ax : None or matplotlib.Axes
         Current ax to plot on.
-    well_id: None or str
+    well_id : None or str
         Name of the well to be used as figure title, if None, no title are drawn.
-    plot_legend: bool
+    plot_legend : bool
         Whether or not to plot legend, should be turned off if used in a wrapper.
-    cmap: matplotlib.colors.Colormap
+    cmap : matplotlib.colors.Colormap
         cmap object for color mapping.
-    norm: matplotlib.colors
+    norm : matplotlib.colors
         color range mapping.
 
     """
@@ -46,20 +46,20 @@ def pie_chart_from_well(well_fld_mean, ax=None, well_id=None, plot_legend=False,
 
 
 def get_fld_mean(plate_meta, expr_data, well_col='Well', fld_col='fld'):
-    """ Calculate per field mean of each field in each well. Assumes samples 
+    """Calculate per field mean of each field in each well. Assumes samples 
     are from the same plate.
 
     Parameters
     --------
-    plate_meta: pandas.DataFrame
+    plate_meta : pandas.DataFrame
         a table of metadata, rows as cell names and columns as metadata.
-    expr_data: pandas.DataFrame
+    expr_data : pandas.DataFrame
         a table of expression data, rows as cell names and columns as 
         channel/markers.
 
     Returns
     --------
-    fld_mean: pandas.DataFrame
+    fld_mean : pandas.DataFrame
         a table of per field per well mean intensity of each channel.
     """
     expr_data = expr_data.reindex(plate_meta.index).copy()
@@ -70,7 +70,7 @@ def get_fld_mean(plate_meta, expr_data, well_col='Well', fld_col='fld'):
 
 
 def process_channel_info(channel_info, expr_data):
-    """ Static function for processing channel info. 
+    """Static function for processing channel info. 
     """
     channel_info = channel_info[channel_info.Channel != 'DAPI'].copy()
     channel_info.sort_values(['Cycle', 'Channel'], inplace=True)
@@ -103,21 +103,21 @@ def process_channel_info(channel_info, expr_data):
 
 
 def plate_QC_pdf(plate_fld_mean, channel_info, figname):
-    """ Generate a multipage pdf file for cells on each cycif plate. 
+    """Generate a multipage pdf file for cells on each cycif plate. 
     Each page is organized in a 3 X 3 grid where rows represent cycles 
     and columns represent different channels. 
 
     Parameters
     --------
-    plate_fld_mean: pandas.DataFrame
+    plate_fld_mean : pandas.DataFrame
         a table of per well per field intensity mean of each channel/marker.
-    channel_info: pandas.DataFrame
+    channel_info : pandas.DataFrame
         a table of channel/marker metadata including cycle the marker is measured, 
         Must have columns named 'Cycle', 'Channel', 'Marker', and 'expr_col'. 
         This table should be already sorted by ['Cycle', 'Channel'] and indexed.
         column name of the marker in the 'plate_fld_mean' DataFrame, dye used. These
         combined determined the location on the pdf file of the particular marker.
-    figname: str
+    figname : str
         figure name to be used.
 
     """
@@ -215,11 +215,11 @@ def bar_chart_from_well(fld_mean, ax=None, well_id=None, plot_legend=False, cmap
 
     Paramerters
     --------
-    ax: None or matplotlib.Axes
+    ax : None or matplotlib.Axes
         Current ax to plot on.
-    well_id: None or str
+    well_id : None or str
         Name of the well to be used as figure title, if None, no title are drawn.
-    plot_legend: bool
+    plot_legend : bool
         Whether or not to plot legend, should be turned off if used in a wrapper.
 
     """
@@ -243,12 +243,12 @@ def QC_plot_all(metadata, expr, combine_output_fn=None, plate_col='Plate', well_
 
     Paramerters
     --------
-    metadata: pandas.DataFrame
+    metadata : pandas.DataFrame
         Table of Cycif data metadata. Must have matching indicies to expr.
-    expr: pandas.DataFrame or pandas.Series.
+    expr : pandas.DataFrame or pandas.Series.
         Table of cycif expression data. Rows as cells and columns as channels. Best log normalized. 
         Can be used to visualize a single channel if expr is passed as a Series.
-    combine_output_fn: None or str
+    combine_output_fn : None or str
         Name of pdf file that all figures are combined into. If let None, each plate will be represented as one figure.
     """
     if combine_output_fn is not None:
@@ -283,21 +283,21 @@ def QC_plot_from_plate(plate_meta, expr, plot_fun='pie',
 
     Paramerters
     --------
-    plate_meta: pandas.DataFrame
+    plate_meta : pandas.DataFrame
         Table of Cycif data metadata of a ceritain plate. Must have matching indicies to expr.
-    expr: pandas.DataFrame or pandas.Series.
+    expr : pandas.DataFrame or pandas.Series.
         Table of cycif expression data. Rows as cells and columns as channels. Best log normalized. 
         Can be used to visualize a single channel if expr is passed as a Series.
-    (well,field)_col: str
+    (well,field)_col : str
         Column names for well and field metadata in 'plate_meta'
-    fig_name: None or str
+    fig_name : None or str
         Name of output file, if None, show figure in console.
-    size: numeric
+    size : numeric
         Size factor of each subplots.
 
     Returns
     --------
-    fig: matplotlib.figure
+    fig : matplotlib.figure
         Figure object to be used in pdf outputs.
     """
     # define plotting functions.
@@ -375,16 +375,16 @@ def radar_plot_from_well(input_df, ax=None, well_id=None, plot_legend=False):
 
     Paramerters
     --------
-    ax: None or matplotlib.Axes
+    ax : None or matplotlib.Axes
         Current ax to plot on.
-    well_id: None or str
+    well_id : None or str
         Name of the well to be used as figure title, if None, no title are drawn.
-    plot_legend: bool
+    plot_legend : bool
         Whether or not to plot legend, should be turned off if used in a wrapper.
 
     returns
     --------
-    ax: matplotlib.Axes
+    ax : matplotlib.Axes
         Subplot object of radar plot.
     """
     ax = ax or plt.gca()

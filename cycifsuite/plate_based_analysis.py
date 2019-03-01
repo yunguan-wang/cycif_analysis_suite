@@ -4,29 +4,34 @@ import os
 import random
 import seaborn as sns
 from sklearn.metrics.pairwise import euclidean_distances
+import matplotlib
 from matplotlib import pyplot as plt
-from common_apis import differential_analysis, channel_histograms, check_numeric, two_way_hc_ordering, make_complex_heatmap
+from cycifsuite.common_apis import differential_analysis, channel_histograms, check_numeric, two_way_hc_ordering, make_complex_heatmap
 
-def dot_heatmap(plotdata, x=1, y=0, figsize=(32, 12), size_scale=30, fontsize=18, half_ticks=False, figname=None):
+
+def dot_heatmap(plotdata, x=1, y=0, figsize=(32, 12), color_scale=(-4, 4),
+                size_scale=30, fontsize=18, half_ticks=False, figname=None):
     """Make dotted heatmap based on given long-format data.
 
     Parameters:
     --------
-    plotdata: pd.DataFrame
+    plotdata : pd.DataFrame
         a table of plot data. First two columns corresponds to the y and x axies, and the third is fold change.
-    x: int
+    x : int
         column index of x axis of the plot.
-    y: int
+    y : int
         column index of y axis of the plot.
-    figsize: tuple
+    figsize : tuple
         width and height of the figure.
-    size_scale: int
+    color_scale : 
+        min and max value to be visualized in dotted heatmap.
+    size_scale : int
         adjusts the sizes of dots in the heatmap.
-    fontsize: int
+    fontsize : int
         x and y label font size.
-    half_ticks: bool
+    half_ticks : bool
         option to show only half of the x axis labels.
-    figname: None or str
+    figname : None or str
         output figure name, if None, figure will be printed to console.
 
     """
@@ -36,25 +41,47 @@ def dot_heatmap(plotdata, x=1, y=0, figsize=(32, 12), size_scale=30, fontsize=18
     colorbar_base_anchor = [0.88, 0.15, 0.02, 0.7]
     plotdata['x'] = plotdata.iloc[:, x].factorize()[0]
     plotdata['y'] = plotdata.iloc[:, y].factorize()[0]
-    for if_positive, cmap in zip([True, False], ['Reds', 'Greens']):
-        _plotdata = plotdata[plotdata.sign == if_positive]
-        size_vector = size_scale * abs(_plotdata.iloc[:, 2])
-        color_vector = abs(_plotdata.iloc[:, 2])
-        x_vector = _plotdata.x
-        y_vector = _plotdata.y
-        ax.scatter(x_vector, y_vector, s=size_vector,
-                   cmap=cmap, c=color_vector)
-        if cmap == 'Reds':
-            cbar_ax = fig.add_axes(colorbar_base_anchor)
-            cb = plt.colorbar(ax.get_children()[0], ax=ax, cax=cbar_ax)
-        else:
-            colorbar_base_anchor[0] = colorbar_base_anchor[0] + 0.04
-            cbar_ax = fig.add_axes(colorbar_base_anchor)
-            cb = plt.colorbar(ax.get_children()[1], ax=ax, cax=cbar_ax)
-        # adjusting color bar labels.
-        for l in cb.ax.yaxis.get_ticklabels():
-            l.set_weight("bold")
-            l.set_fontsize(16)
+
+    # Single colorbar version
+    _plotdata = plotdata.copy()
+    cmap = sns.diverging_palette(
+        220, 5, sep=80, n=7, s=99, l=50, as_cmap=True)
+    color_scale = matplotlib.colors.Normalize(
+        vmin=color_scale[0], vmax=color_scale[1], clip=True)
+    size_vector = size_scale * abs(_plotdata.iloc[:, 2])
+    color_vector = _plotdata.iloc[:, 2]
+    x_vector = _plotdata.x
+    y_vector = _plotdata.y
+    ax.scatter(x_vector, y_vector, s=size_vector, norm=color_scale,
+               cmap='coolwarm', c=color_vector)
+    cbar_ax = fig.add_axes(colorbar_base_anchor)
+    cb = plt.colorbar(ax.get_children()[0], ax=ax, cax=cbar_ax)
+    cb.set_label('logFC fold change', fontsize=20)
+    for l in cb.ax.yaxis.get_ticklabels():
+        l.set_weight("bold")
+        l.set_fontsize(16)
+
+    # Two colorbar version
+    # for if_positive, cmap in zip([True, False], ['Reds', 'Greens']):
+    #     _plotdata = plotdata[plotdata.sign == if_positive]
+    #     size_vector = size_scale * abs(_plotdata.iloc[:, 2])
+    #     color_vector = abs(_plotdata.iloc[:, 2])
+    #     x_vector = _plotdata.x
+    #     y_vector = _plotdata.y
+    #     ax.scatter(x_vector, y_vector, s=size_vector,
+    #                cmap=cmap, c=color_vector)
+    #     if cmap == 'Reds':
+    #         cbar_ax = fig.add_axes(colorbar_base_anchor)
+    #         cb = plt.colorbar(ax.get_children()[0], ax=ax, cax=cbar_ax)
+    #     else:
+    #         colorbar_base_anchor[0] = colorbar_base_anchor[0] + 0.04
+    #         cbar_ax = fig.add_axes(colorbar_base_anchor)
+    #         cb = plt.colorbar(ax.get_children()[1], ax=ax, cax=cbar_ax)
+    #     # adjusting color bar labels.
+    #     for l in cb.ax.yaxis.get_ticklabels():
+    #         l.set_weight("bold")
+    #         l.set_fontsize(16)
+
     # adjust x and y ticks label fonts and rotations.
     ax.tick_params(axis='x', labelrotation=75, width=5, length=15)
     if half_ticks:
@@ -84,7 +111,7 @@ def channel_dstrn_plot_data_prep(df_fc, expr_data, metadata, fc_threshold=0.6, o
     # Since there are replicates, the mean logFC for each channel is used
     grouped_fc_table = df_fc.groupby(
         organize_by + ['ch']).logFC.mean().reset_index()
-    # TODO: implement col sep by dose option
+    # TODO : implement col sep by dose option
     grouped_fc_table.sort_values(organize_by, inplace=True)
     grouped_fc_table['line_style'] = '-'
     grouped_fc_table.loc[abs(grouped_fc_table.logFC)
@@ -111,18 +138,18 @@ def channel_dstrn_plot(reformed_expr_data, line_style, hue_sep='time', col_sep='
 
     Parameters
     --------
-    df_fc: pd.DataFrame
+    df_fc : pd.DataFrame
         a dataframe object returned by the 'channel_dstrn_plot_data_prep' function. 
-    reformed_expr_data: pd.DataFrame
+    reformed_expr_data : pd.DataFrame
         a dataframe object of the input data, same as the one used in per_well_analysis.
-    line_style: pd.DataFrame
+    line_style : pd.DataFrame
         a look up table of line style for each feature + experimental condition combination. 
         This is one of the outputs from the 'channel_dstrn_plot_data_prep' function.
-    hue_sep: str
+    hue_sep : str
         column name in df_fc dataframe that defines each line in the distribution plot.
-    col_sep: str
+    col_sep : str
         column name in df_fc dataframe that defines each subplots in the plot.
-    control_name: str
+    control_name : str
         value for the control sample name.
     """
     facetgrid_col = col_sep
@@ -185,23 +212,23 @@ class per_well_analysis():
 
         Parameters
         --------
-        expr_data: pd.DataFrame
+        expr_data : pd.DataFrame
             sample x features. dataframe of segmented single cell cycif data. 
-        metadata: pd.DataFrame
+        metadata : pd.DataFrame
             sample x features, dataframe of metadata of segmented single cell data.
-        output_path: str
+        output_path : str
             as named.
-        output_prefix: str
+        output_prefix : str
             as named.
-        time_col: str
+        time_col : str
             column in metadata containing trt time duration.
-        drug_col: str
+        drug_col : str
             column in metadata containing trt drug name.
-        control_name: str
+        control_name : str
             name of ligand used as control.
-        control_col: str
+        control_col : str
             column in metadata containing control sample. This is needed since it could interesting to use a time point as control rather than a ligand/drug.
-        batch_col: str
+        batch_col : str
             column name in the metadata. This is usefult because sometimes we have pooled data from multiple plate/group, and each has their own control samples.
             separating proper control for proper test set is then important. By default their is no batches.
         """
@@ -231,13 +258,13 @@ class per_well_analysis():
 
         Parameters
         --------
-        return_variance: bool
+        return_variance : bool
             if True, variance table are returned.
-        channel_dist_plot: bool
+        channel_dist_plot : bool
             if True, make channel histograms.
 
         Returns
-        total_variance: well-wise variance table.
+        total_variance : well-wise variance table.
 
         """
         # Channel distribution plot.
@@ -267,18 +294,18 @@ class per_well_analysis():
 
         Parameters
         --------
-        batch_wise: boolean
+        batch_wise : boolean
             if True, make contrasts within each batch, otherwise assume there is only one control condition in the data.
-        test_condition_groupby: list-like
+        test_condition_groupby : list-like
             collections of colnames that defines a treatment condition.  
-        control_name: str
+        control_name : str
             name of control sample name. 
-        control_col_idx: str
+        control_col_idx : str
             index in 'test_condition_groupby' speciying the name of column in metadata that contains the control name.
 
         Return
         --------
-        list_groups: list
+        list_groups : list
             a tuple of test condition, test_samples, control condition and control_samples.
 
         """
@@ -315,7 +342,7 @@ class per_well_analysis():
                 lambda x: ','.join(x.index)).iloc[:, 0]
 
             # This loop is to identify control and pad control cells and control metadata to each test condition in current batch.
-            # TODO: It could be improved.
+            # TODO : It could be improved.
             _status = 0
             for idx in current_batch_agg.index:
                 if idx[control_col_idx] == control_name:
@@ -345,7 +372,7 @@ class per_well_analysis():
 
         Return
         --------
-        df_dist: pd.DataFrame
+        df_dist : pd.DataFrame
             a dataframe of sample by features. treatment to control distance is only one of the columns.
             The rest are sample metadata to allow flexibility in making the plots.
         """
@@ -378,11 +405,11 @@ class per_well_analysis():
 
         Parameters
         --------
-        facetgrid_col: str
+        facetgrid_col : str
             column in df_dist, defines how the subplots are organized by column.   
-        x_group: str
+        x_group : str
             column in df_dist, defines how the groups are created in each subplot. 
-        facetgrid_row: str
+        facetgrid_row : str
             column in df_dist, similar to facetgrid_col, but for rows. 
 
         """
@@ -439,7 +466,7 @@ class per_well_analysis():
 
         Parameters
         --------
-        condition_by: None or list-like
+        condition_by : None or list-like
             list of metadata that combined makes one-to-one well to condition mapping.
             If None, the conditions are defined by drug, dose and time.
             If a condition describes multiple wells, the function will not run until provided with a valid condition_by value. 
@@ -541,7 +568,7 @@ class per_well_analysis():
             col_meta = col_meta.loc[cols_order]
             mch(df_data)
 
-    def make_swarm_plot(self, color_by=None, x_group=None):
+    def make_swarm_plot(self, color_by=None, x_group=None, **kwargs):
         """Plate-wise swarm plot of logFC per channel/feature, with flexibility in coloring and grouping along x-axis.
         """
         sns.set(font_scale=2)
@@ -554,10 +581,10 @@ class per_well_analysis():
         df_fc = self.report.copy()
         # Assumes the first two '_' separated elements of index are location
         # and channel name
-        df_fc['Ch'] = ['_'.join(x.split('_')[:2]) for x in df_fc.index]
-        df_fc.sort_values(x_group, inplace=True)
+        df_fc['Ch'] = ['_'.join(x.split('_')[:2][::-1]) for x in df_fc.index]
+        df_fc.sort_values([x_group, color_by, 'Ch'], inplace=True)
         g = sns.FacetGrid(data=df_fc, col='Ch', hue=color_by,
-                          col_wrap=3, height=5, aspect=2)
+                          col_wrap=3, height=5, aspect=2, **kwargs)
         g = g.map(sns.swarmplot, x_group, 'logFC', s=10)
         g.add_legend(markerscale=2)
         plt.savefig(output_fname)
@@ -572,11 +599,11 @@ class per_well_analysis():
 
         Parameters
         --------
-        fc_threshold: float
+        fc_threshold : float
             Fold change threshold for considering if the channel's distribution will be plotted as a solid line.
-        organize_by: None or list-like
+        organize_by : None or list-like
             Determines the layout of the figure. The first value for columns separator, and the second value for color.
-        savefig: bool
+        savefig : bool
             If true, figures will be saved as ./misc/[prefix+channel name]. 
 
         """

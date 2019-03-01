@@ -9,11 +9,11 @@ import scipy.cluster.hierarchy as sch
 
 
 def channel_histograms(df, xlim=None, n_bins=100, save_fig_filename=None):
-    """ Make histograms for each column.
+    """Make histograms for each column.
 
     Parameters
     --------
-    df: pandas.DataFrame
+    df : pandas.DataFrame
         a table of cells by channel names. 
     """
     sns.set(font_scale=3)
@@ -40,14 +40,14 @@ def channel_histograms(df, xlim=None, n_bins=100, save_fig_filename=None):
 
 
 def plot_clustering(df_low_dim, df_labels, figname=None):
-    """ Make scatter plots of dimention reduced data with cluster designation.
+    """Make scatter plots of dimention reduced data with cluster designation.
 
     Parameters
     --------
-    df_low_dim: pandas.DataFrame or numpy ndarray.
+    df_low_dim : pandas.DataFrame or numpy ndarray.
         a table of low dimensional data, sample/cell by dimension. Must have at 
         least two dimensions.
-    df_labels: pandas.Series or list-like.
+    df_labels : pandas.Series or list-like.
         a table of sample/cell cluster designation. samples must be the same order
         as those in df_low_dim.
     """
@@ -72,11 +72,11 @@ def plot_clustering(df_low_dim, df_labels, figname=None):
 def differential_analysis(test_samples, control_samples):
     """calculated fold change on log transformed data.
 
-    Paremeters:
+    Paremeters :
     --------
-    test_samples: pandas.dataframe
+    test_samples : pandas.dataframe
         a dataframe of test data, rows as cells and columns as features.
-    control_samples: pandas.dataframe
+    control_samples : pandas.dataframe
         a dataframe of control data, rows as cells and columns as features.
     """
     report = pd.DataFrame(
@@ -91,6 +91,7 @@ def differential_analysis(test_samples, control_samples):
     report['adj_T_pVal'] = fdr(report.T_pValue)[1]
     report['adj_KS_pVal'] = fdr(report.KS_pValue)[1]
     return report
+
 
 def plot_expr_on_2D(df_2d, df_raw_expr, figname, labels):
     """
@@ -197,18 +198,18 @@ def calculate_cluster_composition(df_metadata):
 # Old function
 def plot_dist_violinplot(df_dist,
     x_axis_col = 'Dose', 
-    save_fig_filename = 'Drug_DMSO distance over dose and time.png'):
+    save_fig_filename = 'Drug_DMSO distance over dose and time.png') :
 
     sns.set(font_scale=1.5)
     new_df_dist = pd.DataFrame()
-    if x_axis_col == 'Dose':
-        for time in df_dist.Time.unique():
+    if x_axis_col == 'Dose' :
+        for time in df_dist.Time.unique() :
             dmso = df_dist[(df_dist.Time==time)&(df_dist.Drug==control_name)]
             low_dmso = dmso['Average Distance to DMSO'].quantile(0.01)
             high_dmso = dmso['Average Distance to DMSO'].quantile(0.99)
             dmso = dmso[dmso['Average Distance to DMSO'].between(low_dmso,high_dmso)]
-            for drug in df_dist.Drug.unique():
-                if drug == control_name:
+            for drug in df_dist.Drug.unique() :
+                if drug == control_name :
                     continue
                 sub_df_dist = df_dist[(df_dist.Time==time)&(df_dist.Drug==drug)]   
                 low = sub_df_dist['Average Distance to DMSO'].quantile(0.01)
@@ -219,16 +220,16 @@ def plot_dist_violinplot(df_dist,
                 new_df_dist = new_df_dist.append(sub_df_dist)
         df_dist = new_df_dist
         
-    if x_axis_col == 'Dose':    
-        order = ['{:.1e}'.format(x) for x in sorted(df_dist[x_axis_col].unique().astype(float))]
+    if x_axis_col == 'Dose' :    
+        order = ['{ :.1e}'.format(x) for x in sorted(df_dist[x_axis_col].unique().astype(float))]
         g = sns.FacetGrid(data=df_dist,col='Drug',row = 'Time',palette='Blues',sharey=True, sharex=False,height=6)
         g = g.map(sns.violinplot,x_axis_col,'Average Distance to DMSO', order = order, bw=.2)
-    elif x_axis_col == 'Time':
+    elif x_axis_col == 'Time' :
         order = sorted(df_dist[x_axis_col].unique())
         g = sns.FacetGrid(data=df_dist,col='Drug',palette='Blues',sharey=True, sharex=True,height=6)
         g = g.map(sns.violinplot,x_axis_col,'Average Distance to DMSO', order = order, bw=.2)
-    for ax in g.axes.flat:
-        for label in ax.get_xticklabels():
+    for ax in g.axes.flat :
+        for label in ax.get_xticklabels() :
             label.set_rotation(60)
     plt.tight_layout()
     sns.set(font_scale=1)
@@ -236,20 +237,20 @@ def plot_dist_violinplot(df_dist,
     plt.close()
     sns.set(font_scale=1)
 
-# def make_fc_heatmap():
+# def make_fc_heatmap() :
 #     # make heatmap
 #     df_fc['condition'] = df_fc.DrugName + '_' + df_fc.Dose.astype(str)+ '_' + df_fc.Time + '_' + df_fc.Cluster
 #     df_summary = df_fc.pivot(values='logFC',columns='condition').transpose()
 #     offset = []
-#     for i,tag in enumerate(['Drug','Dose','Time']):
+#     for i,tag in enumerate(['Drug','Dose','Time']) :
 #         metadata = [x.split('_')[i] for x in df_summary.index]
 #         df_summary.insert(0,tag,metadata)
 #         offset+=['']
 #     df_summary = df_summary.transpose()
-#     for i, tag in enumerate(['Location','Marker']):
-#         metadata = [x.split('_')[i] for x in df_summary.index[3:]]
+#     for i, tag in enumerate(['Location','Marker']) :
+#         metadata = [x.split('_')[i] for x in df_summary.index[3 :]]
 #         df_summary.insert(0,tag,offset+metadata)
-#     df_summary.to_csv('d:/data/MCF10A drug response heatmap.csv')
+#     df_summary.to_csv('d :/data/MCF10A drug response heatmap.csv')
 
 """
 
@@ -268,16 +269,16 @@ def make_complex_heatmap(df_data, heatmap_cmap='coolwarm',
 
     Parameters
     --------
-    df_data: pd.DataFrame
+    df_data : pd.DataFrame
         a table with data.
-    row_metadata, col_metadata: pd.Series or pd.DataFrame
+    row_metadata, col_metadata : pd.Series or pd.DataFrame
         metadata of rows and columns that needs to be represented as row and column sidebars.
-    figsize: figure size as in matplotlib.
-    vmax, vmin:: float
+    figsize : figure size as in matplotlib.
+    vmax, vmin : : float
         max or min value in the heatmap function fron Seaborn
-    col_colorbar_anchor, row_colorbar_anchor: list of length of 4
+    col_colorbar_anchor, row_colorbar_anchor : list of length of 4
         coordinants and size of color bar, first two values are x and y co-ordinnants, third and fourth one are width and height.
-    figname: str
+    figname : str
         path of output figure, if None, print to console.
     """
     # Initialize subplots.
