@@ -108,7 +108,7 @@ def selct_k_anova(x, y, num_features):
     return sk_fs, sk
 
 
-def plot_feature_var(x, y, sk, f_meta, f_meta_col='a_feature_type'):
+def plot_feature_var(x, y, sk, f_meta, f_meta_col='feature_cat'):
     """Plot feature variance and anova scores. Need the fitted model from 
     select_k_anova.
     """
@@ -251,7 +251,7 @@ def plot_binned_pca_plot(x_binned, y_binned, arrows=False, **kwarg):
 
 
 def plot_feature_wise_pca(x_binned, y_binned, f_meta,
-                          col='a_feature_type', save_fig_prefix=False,
+                          col='feature_cat', save_fig_prefix=False,
                           **kwarg):
     """Wrapper function for plotting PCA plots across multiple feature 
     categories.
@@ -277,7 +277,7 @@ def plot_feature_wise_pca(x_binned, y_binned, f_meta,
 def rf_feature_imp_plot(rf_model, feature_meta, rf_model_features,
                         save_fig_prefix=False, ylim=(0, 0.015),
                         feature_meta_cols=[
-                            'a_feature_type', 'feature_chr', 'sublocation', 'marker'],
+                            'feature_cat', 'feature_type', 'sublocation', 'marker'],
                         cumulative=False,
                         title=''):
     feature_meta = feature_meta.copy()
