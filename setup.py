@@ -12,6 +12,7 @@ requires = [
     'fuzzywuzzy',
     'synapseclient',
     'rfpimp',
+    'adjustText',
 ]
 version = versioneer.get_version()
 cmdclass = versioneer.get_cmdclass()

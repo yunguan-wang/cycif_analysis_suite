@@ -175,7 +175,7 @@ def find_elbow(x, y, left_stepping=False):
     return elbow_idx, angle
 
 
-def plot_elbow(x, y, angle, elbow_idx, color='red'):
+def plot_elbow(x, y, angle, elbow_idx, color='red', figname=None):
     fig, axes = plt.subplots(1, 2, sharex=True, figsize=(12, 6))
     axes = axes.ravel()
     threshold_plot = axes[0]
@@ -191,8 +191,14 @@ def plot_elbow(x, y, angle, elbow_idx, color='red'):
     angle_plot.plot(x[1:-1], angle)
     angle_plot.plot([x[elbow_idx], x[elbow_idx]], [min(angle), max(angle)],
                     color=color, linestyle='dashed')
-    angle_plot.set_ylabel('Angles formed by 3 consecutive points')
-    plt.show()
+    angle_plot.set_ylabel(
+        'Angles formed by 3 consecutive points', fontsize=16)
+    # save plots
+    if figname is not None:
+        plt.savefig(figname)
+        plt.close()
+    else:
+        plt.show()
 
 
 def ROC_lostcells(expr_DAPIs, cutoff_min=1, cutoff_max=3,
@@ -263,7 +269,7 @@ def ROC_lostcells(expr_DAPIs, cutoff_min=1, cutoff_max=3,
     # https://pdfs.semanticscholar.org/25d3/84f032b4d0d55019de354e32675d329f98df.pdf
     elbow_idx, angle = find_elbow(x, y, left_stepping)
     # Plotting
-    plot_elbow(x, y, angle, elbow_idx)
+    plot_elbow(x, y, angle, elbow_idx, figname=figname)
     # give the option to have some user adjustment for the threshold.
     if not automatic:
         while True:
@@ -282,13 +288,9 @@ def ROC_lostcells(expr_DAPIs, cutoff_min=1, cutoff_max=3,
                 print('Use manual input elbow at {:.2f}'.format(elbow_x))
                 break
         # new threshold plot
-        plot_elbow(x, y, angle, elbow_idx, 'green')
+        plot_elbow(x, y, angle, elbow_idx, 'green', figname=figname)
     else:
         elbow_x = x[elbow_idx]
-    # save plots
-    if figname is not None:
-        plt.savefig(figname)
-        plt.close()
     return x, y, elbow_x
 
 
@@ -441,12 +443,35 @@ def plot_lost_cell_per_cycle_stacked_area(lc_cycle, metadata=None, in_fraction=F
     plt.stackplot(flds, *plot_data.values.reshape(n_cycles -
                                                   1, n_fields), labels=cycles)
     plt.legend(bbox_to_anchor=(1.15, 0.5), loc='center')
-    plt.xlabel('Fields in a well', fontsize=18)
+    plt.xlabel('Field', fontsize=18)
     plt.ylabel('Absolute accumulated cell loss', fontsize=18)
     if figname is not None:
+        plt.tight_layout()
         plt.savefig(figname)
         plt.close()
     else:
         plt.show()
     if return_lc_stats:
         return lc_stats
+
+
+def plot_lc_by_fld(t):
+    """Plot lost cells for each firld
+
+    Parameters
+    --------
+    t : pd.Series
+        a talbe returned by get_mean_lost_cell_fraction, with index of each field name and values as
+        the fraction of lost cells.
+
+    """
+    sns.set(font_scale=2)
+    t.name = 'Fraction_of_lost_cells'
+    t = pd.DataFrame(t)
+    t['field'] = [x.split('_')[-1] for x in t.index]
+    t = t.sort_values('field')
+    plt.figure(figsize=(12, 6))
+    sns.boxplot(x='field', y='Fraction_of_lost_cells', hue='field',
+                data=t, dodge=False)
+    plt.ylabel('Fraction of lost cells per field', fontsize=18)
+    plt.legend(bbox_to_anchor=(1.1, 0.5), loc='center')
