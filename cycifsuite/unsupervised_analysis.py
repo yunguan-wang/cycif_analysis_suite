@@ -8,6 +8,7 @@ from adjustText import adjust_text
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import robust_scale, quantile_transform
 from sklearn.decomposition import PCA
+from sklearn.neighbors import LocalOutlierFactor
 from hdbscan import HDBSCAN
 from umap import UMAP
 from sklearn.mixture import GaussianMixture
@@ -42,7 +43,7 @@ def dimension_reduction(roi_data, n_pc=10, umap_n_neighbor_modifier=500, cols=No
 
 def clustering_wrapper(data, algorithm='hdbscan', dimention_reduction=False, n_clusters=2, mcs=None,
                        ms=None, umap_n_comp=2, umap_min_dist=0.1, umap_n_neighbors=15,
-                       use_full_dim=True, **kwargs):
+                       use_full_dim=True, remove_outliers=True, **kwargs):
     '''
     wrapper function for GMM, KMEANS and HDBSCAN clustering.
     '''
@@ -66,6 +67,16 @@ def clustering_wrapper(data, algorithm='hdbscan', dimention_reduction=False, n_c
             transformed_data = umap.fit_transform(pca.fit_transform(data))
         else:
             transformed_data = None
+
+        # remove outliers
+        if remove_outliers:
+            lof = LocalOutlierFactor(contamination=0.05)
+            labels = lof.fit_predict(transformed_data)
+            valid_idx = [i for i, x in enumerate(labels) if x != -1]
+            transformed_data = transformed_data[valid_idx, :]
+            print('{} out of {} samples left after outlier removal'.format(
+                transformed_data.shape[0], data.shape[0]))
+
         if algorithm == 'hdbscan':
             if mcs == None:
                 mcs = int(0.1 * data.shape[0])
@@ -74,10 +85,12 @@ def clustering_wrapper(data, algorithm='hdbscan', dimention_reduction=False, n_c
             clustering = HDBSCAN(min_cluster_size=mcs, min_samples=ms)
         elif algorithm == 'kmeans':
             clustering = KMeans(n_clusters)
+
         if use_full_dim:
             labels = clustering.fit_predict(data)
         else:
             labels = clustering.fit_predict(transformed_data)
+        labels = pd.Series(labels, index=data.index[valid_idx])
     return labels, transformed_data
 
 
@@ -101,16 +114,12 @@ def cluster_all_wells(expr_data, metadata, clustering_func, group_id='sampleid',
         if verbose:
             print('Sample name: {}'.format(group_name))
         labels, umap_data = clustering_func(group_df)
-        metadata.loc[group_idx, 'cluster'] = labels
+        metadata.loc[labels.index, 'cluster'] = labels.values
         umap_data = pd.DataFrame(umap_data[:, :2], columns=[
                                  'UMAP_C1', 'UMAP_C2'])
-        sns.scatterplot('UMAP_C1', 'UMAP_C2', palette='Set2', hue=labels,
+        sns.scatterplot('UMAP_C1', 'UMAP_C2', palette='Set2', hue=labels.values,
                         data=umap_data, s=5, legend='full', edgecolor=None, alpha=0.8)
         plt.savefig(group_name + '.png')
-        plt.xlim(umap_data.UMAP_C1.quantile(0.01),
-                 umap_data.UMAP_C1.quantile(0.99))
-        plt.ylim(umap_data.UMAP_C2.quantile(0.01),
-                 umap_data.UMAP_C2.quantile(0.99))
         plt.close()
     os.chdir(current_cwd)
     return metadata
