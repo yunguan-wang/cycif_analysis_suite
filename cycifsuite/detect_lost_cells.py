@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from cycifsuite.common_apis import check_numeric
 
 
@@ -456,7 +457,7 @@ def plot_lost_cell_per_cycle_stacked_area(lc_cycle, metadata=None, in_fraction=F
 
 
 def plot_lc_by_fld(t):
-    """Plot lost cells for each firld
+    """Plot lost cells for each field
 
     Parameters
     --------
@@ -475,3 +476,4 @@ def plot_lc_by_fld(t):
                 data=t, dodge=False)
     plt.ylabel('Fraction of lost cells per field', fontsize=18)
     plt.legend(bbox_to_anchor=(1.1, 0.5), loc='center')
+    sns.set(font_scale=1, style='white')
